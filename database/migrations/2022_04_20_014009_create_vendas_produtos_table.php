@@ -19,7 +19,7 @@ class CreateVendasProdutosTable extends Migration
             $table->foreignId('calcados_id')->index()->constrained('calcados', 'id');
             $table->integer('quantidade');
             $table->decimal('valor_produto', 10, 2);
-            $table->integer('desconto');
+            $table->integer('desconto')->nullable();
             $table->decimal('valor_pagamento', 10, 2);
             $table->timestamps();
         });

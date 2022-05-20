@@ -48,8 +48,12 @@ class EstoqueController extends Controller
        if($validacao->fails()){
             return 'Preencha os campos obrigatórios'; 
        } 
-        estoque::create($valores);                 
-        return 'salvo'; 
+       $atual = estoque::where('calcados_id', $valores['calcados_id'])->get()->first();
+       if ($atual){
+        $valores['estoque_quantidade'] = $atual->estoque_quantidade + $valores['estoque_quantidade'];
+       } 
+       estoque::updateOrCreate(['calcados_id' => $valores['calcados_id']],$valores);    
+       return 'salvo'; 
     }
 
     /**
@@ -103,6 +107,7 @@ class EstoqueController extends Controller
         }
         $atual = estoque::find($id);
         if($atual){
+            $valores['estoque_quantidade'] = $atual->estoque_quantidade + $valores['estoque_quantidade'];
             $atual->update($valores);
             return 'Atualizado com sucesso';
         } else{
@@ -120,5 +125,9 @@ class EstoqueController extends Controller
     {
         $estoque->destroy($id);
          return 'Item excluído com sucesso';
+    }
+    public function estoqueMinimo(estoque $estoque)
+    {
+        dd('kals');
     }
 }

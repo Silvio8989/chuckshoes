@@ -2,7 +2,9 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\devolucaoProdutos;
+use App\Models\DevolucaoProdutos;
+use App\Models\VendasProdutos;
+use App\Models\Estoque;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Validator;
 
@@ -34,15 +36,28 @@ class DevolucaoProdutosController extends Controller
      * @param  \Illuminate\Http\Request  $request
      * @return \Illuminate\Http\Response
      */
-    public function store(Request $request)
+    public function store(Request $request, VendasProdutos $vendasProdutos, Estoque $estoque)
     {
        $valores = $request->all();
-       $validacao = Validator::make($valores,['devolução' => 'required']);
+       $validacao = Validator::make($valores,[
+            'vendas_id' => 'required',
+            'calcados_id' => 'required',
+            'quantidade' => 'required',
+            'motivo' => 'required',
+        ]);
+       
        if($validacao->fails()){
             return 'Preencha os campos obrigatórios'; 
        }
-       devolucaoProdutos::create($valores);
-       return 'salvo'; 
+       $procuraEstoque = $vendasProdutos->where('vendas_id',$valores['vendas_id'])->where('calcados_id',$valores['calcados_id'])->where('quantidade', '>=',$valores['quantidade'])->get()->first();
+       if($procuraEstoque){
+            devolucaoProdutos::create($valores);
+            $procuraEstoque = $estoque->where('calcados_id',$valores['calcados_id'])->get()->first();
+            $atualEstoque = $procuraEstoque->estoque_quantidade + $valores['quantidade'];
+            $procuraEstoque->update(['estoque_quantidade' => $atualEstoque]);  
+            return 'Devolução efetuada com sucesso';
+       }  
+       return 'Não foi possível localizar a venda'; 
     }
 
     /**

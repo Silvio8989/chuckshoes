@@ -24,10 +24,12 @@ Route::get('/', function () {
     Route::resource('marca',CalcadoMarcaController::class);
     Route::resource('tamanho',CalcadoTamanhoController::class);
     Route::resource('devolução',DevolucaoProdutosController::class);
-    Route::resource('estoque',EstoqueController::class);
+    Route::get('estoque/minimo','EstoqueController@estoqueMinimo')->name('estoque.minimo');
+    Route::resource('estoque',EstoqueController::class);   
     Route::resource('venda',VendaController::class);
     Route::resource('vendasProdutos',CalcadoCorController::class);
     Route::resource('fornecedor',FornecedorController::class);
+
     
     
 });

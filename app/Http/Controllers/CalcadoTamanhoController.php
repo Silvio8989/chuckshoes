@@ -15,7 +15,10 @@ class CalcadoTamanhoController extends Controller
      */
     public function index()
     {
-        //
+        $array = array('p' => 'pequeno' , 'm' => 'médio', 'g' => 'grande');
+        $objeto = collect($array);
+        dd($array['p'],$objeto->get('p'));
+
     }
 
     /**

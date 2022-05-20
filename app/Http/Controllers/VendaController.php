@@ -3,6 +3,8 @@
 namespace App\Http\Controllers;
 
 use App\Models\Venda;
+use App\Models\VendasProdutos;
+use App\Models\Estoque;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Validator;
 
@@ -34,42 +36,44 @@ class VendaController extends Controller
      * @param  \Illuminate\Http\Request  $request
      * @return \Illuminate\Http\Response
      */
-    public function store(Request $request)
+    public function store(Request $request, Venda $venda, Estoque $estoque)
     {
        $valores = $request->all();
        $validacao = Validator::make($valores,[
             'total' => 'required',
             'desconto' => 'required',
             'juros' => 'required',
-            'valor_pagamento' => 'required',
             'forma_pagamento' => 'required',
     ]);
        if($validacao->fails()){
             return 'Preencha os campos obrigatórios'; 
        }
-       
        $venda = Venda::create($valores);
        $venda_id = $venda->id;
-        $total = 0;
-        dd($valores['calcados_id']);
+        $total = 0; 
         foreach($valores['calcados_id'] as $chave => $calcados_id){
-            $valortotal = $valores['valor_produto'][$chave] * $valores['quantidade'][$chave]; 
-            $total = $total + $valortotal;
-            dd('teste');
-            $salvar[] = [
-                'vendas_id' => $venda_id,
-                'calcados_id' => $calcados_id,
-                'quantidade' => $valores['quantidade'][$chave],
-                'valor_produto' => $valores['valor_produto'][$chave],
-                'valor_pagamento' => $valortotal
-            ]; 
+            $procuraEstoque = $estoque->where('calcados_id',$calcados_id)->get()->first();
+            if ($procuraEstoque->estoque_quantidade >= $valores['quantidade'][$chave]){
+                $valortotal = $valores['valor_produto'][$chave] * $valores['quantidade'][$chave]; 
+                $total = $total + $valortotal;
+                $salvar[] = [
+                    'vendas_id' => $venda_id,
+                    'calcados_id' => $calcados_id,
+                    'quantidade' => $valores['quantidade'][$chave],
+                    'valor_produto' => $valores['valor_produto'][$chave],
+                    'valor_pagamento' => $valortotal
+                ];
+                $atualEstoque = $procuraEstoque->estoque_quantidade - $valores['quantidade'][$chave];
+                $procuraEstoque->update(['estoque_quantidade' => $atualEstoque]);   
+            } 
         }
-
-        dd('teste');
-        VendasLivros::insert($salvar);
-        $atual = $vendas->find($venda_id);    
-        $atual->update(['valortotal' => $total]);  
-       return 'salvo'; 
+        if (isset($salvar)){
+            VendasProdutos::insert($salvar);
+            $atual = $venda->find($venda_id);    
+            $atual->update(['valor_pagamento' => $total]);      
+            return 'salvo'; 
+        } 
+        return 'Produto sem estoque';
     }
 
     /**

@@ -58,9 +58,9 @@ class CalcadoController extends Controller
      * @param  \App\Models\Calcado  $calcado
      * @return \Illuminate\Http\Response
      */
-    public function show(Calcado $calcado, $id)
+    public function show($id)
     {
-         $show =  $calcado->find($id);
+         $show =  Calcado::find($id);
        if ($show){
            return $show->toJson();
        }else{
